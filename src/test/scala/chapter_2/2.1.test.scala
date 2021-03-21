@@ -1,4 +1,5 @@
-import collection.mutable.Stack
+package chapter_2
+
 import org.scalatest.flatspec.AnyFlatSpec
 
 class Exercise2_1_Test extends AnyFlatSpec {
