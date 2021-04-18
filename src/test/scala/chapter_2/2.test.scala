@@ -2,7 +2,7 @@ package chapter_2
 
 import org.scalatest.flatspec.AnyFlatSpec
 
-class Exercise2_Test extends AnyFlatSpec {
+class Exercise2Test extends AnyFlatSpec {
 
   "fib" should "return the n-th fibonacci value" in {
     assert(Exercise2.fib(0) == 0)
