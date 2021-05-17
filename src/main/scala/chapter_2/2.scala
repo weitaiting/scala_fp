@@ -13,12 +13,16 @@ object Exercise2 {
 
   def isSorted[A](as: Array[A], ordered: (A, A) => Boolean): Boolean = {
     @annotation.tailrec
-    def rec(as: Array[A], ordered: (A, A) => Boolean, position: Int): Boolean = {
-        if (as.isEmpty) true
-        else if (as.length == 1) true
-        else if (position + 1 == as.length) true
-        else if (!ordered(as(position), as(position + 1))) false
-        else rec(as, ordered, position + 1)
+    def rec(
+        as: Array[A],
+        ordered: (A, A) => Boolean,
+        position: Int
+    ): Boolean = {
+      if (as.isEmpty) true
+      else if (as.length == 1) true
+      else if (position + 1 == as.length) true
+      else if (!ordered(as(position), as(position + 1))) false
+      else rec(as, ordered, position + 1)
     }
     rec(as, ordered, 0)
   }
@@ -29,13 +33,12 @@ object Exercise2 {
     // (input: A) => f(input, _)
   }
 
-  def uncurry[A, B, C](f: A => B => C): (A, B) => C = {
-    (input: A, input2: B) => f(input)(input2)
+  def uncurry[A, B, C](f: A => B => C): (A, B) => C = { (input: A, input2: B) =>
+    f(input)(input2)
   }
 
-  def compose[A, B, C](f: B => C, g: A => B): A => C = {
-    (input: A) => f(g(input))
+  def compose[A, B, C](f: B => C, g: A => B): A => C = { (input: A) =>
+    f(g(input))
   }
 
 }
-
