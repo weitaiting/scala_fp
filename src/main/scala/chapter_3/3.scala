@@ -4,7 +4,16 @@ sealed trait List[+A]
 case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
 
+sealed trait Tree[+A]
+case class Leaf[A](value: A) extends Tree[A]
+case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+
 object List {
+  def isEmpty[A](ls: List[A]): Boolean = ls match {
+    case Nil => true
+    case _ => false
+  }
+
   def sum(ints: List[Int]): Int = ints match {
     case Nil         => 0
     case Cons(x, xs) => x + sum(xs)
@@ -53,14 +62,6 @@ object List {
     case Cons(x, xs) => reverse(xs, Cons(x, acc))
   }
 
-  // Ex 3.6: Remove the last element of a List
-  // a non-tail-recursive solution
-  def init2[A](l: List[A]): List[A] = l match {
-    case Nil          => Nil
-    case Cons(x, Nil) => Nil
-    case Cons(x, xs)  => Cons(x, init2(xs))
-  }
-
   // a tail-recursive solution
   def init[A](l: List[A]): List[A] = {
     @annotation.tailrec
@@ -70,6 +71,14 @@ object List {
       case Cons(x, xs)  => tailRec(xs, Cons(x, acc))
     }
     tailRec(l, Nil)
+  }
+
+  // Ex 3.6: Remove the last element of a List
+  // a non-tail-recursive solution
+  def init2[A](l: List[A]): List[A] = l match {
+    case Nil          => Nil
+    case Cons(x, Nil) => Nil
+    case Cons(x, xs)  => Cons(x, init2(xs))
   }
 
   // NOT tail-recursive, and hence not stack-safe
@@ -125,20 +134,18 @@ object List {
   // Ex 3.14 Implement append in terms of foldLeft
   // This function appends element z to the list as
   def append[A](as: List[A])(z: A): List[A] =
-    prependAll(as)(List(z))
+    foldLeft(reverse(as), List(z))((x, y) => Cons(y, x))
 
   // Ex 3.15 Write a fn that concatenates a list of lists into a single list
   // with runtime linear in the total length of all lists
 
   // prependAll prepends every item in the target list to the accumulator
   def prependAll[A](acc: List[A])(target: List[A]): List[A] =
-    foldLeft(acc, target)((x, y) => Cons(y, x))
+    foldLeft(reverse(target), acc)((x, y) => Cons(y, x))
 
   // Flatten concatenates a list of lists into a single list
   def flatten[A](as: List[List[A]]): List[A] =
-    reverse(
-      foldLeft(as, List[A]())((x, y) => prependAll(y)(x))
-    )
+    foldLeft(as, List[A]())((x, y) => prependAll(y)(x))
 
   // Ex 3.16: Write a fn that adds 1 to each int in a list of ints
   def addOne(as: List[Int]): List[Int] =
@@ -152,7 +159,7 @@ object List {
       foldLeft(as, List[String]())((x, y) => Cons(y.toString, x))
     )
 
-  // Ex 3.18 Write map, modify each element ina list while maintaining the structure of a list
+  // Ex 3.18 Write map, modify each element in a list while maintaining the structure of a list
   def map[A, B](as: List[A])(f: A => B): List[B] =
     reverse(
       foldLeft(as, List[B]())((x, y) => Cons(f(y), x))
@@ -170,10 +177,8 @@ object List {
 
   // Ex 3.20 Write flatMap
   def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
-    reverse(
-      foldLeft(as, List[B]())((x, y) => prependAll(f(y))(x))
-    )
-
+    foldLeft(as, List[B]())((x, y) => prependAll(f(y))(x))
+ 
   // Ex 3.21 Write filter in terms of flatMap
   def filter2[A](as: List[A])(f: A => Boolean): List[A] =
     flatMap(as)(x => if (f(x)) List(x) else List())
@@ -209,4 +214,99 @@ object List {
       }
   }
 
+}
+
+object Tree {
+  // Ex 3.25 Write a function that counts the number of nodes (leaves and branches) in a tree
+  def size[A](tree: Tree[A]): Int = {
+    @annotation.tailrec
+    def recur[A](trees: List[Tree[A]], acc: Int = 0): Int = trees match {
+      case Nil => acc
+      case Cons(tree, trees) =>
+        tree match {
+          case Leaf(_) => recur(trees, acc + 1)
+          case Branch(left, right) =>
+            recur(Cons(right, Cons(left, trees)), acc + 1)
+        }
+    }
+    recur(List(tree))
+  }
+
+  // Ex 3.26 Write a function that returns the max element in the tree
+  def maximum(tree: Tree[Int], acc: Int = Int.MinValue): Int = {
+    @annotation.tailrec
+    def recur(trees: List[Tree[Int]], acc: Int = Int.MinValue): Int =
+      trees match {
+        case Nil => acc
+        case Cons(tree, trees) =>
+          tree match {
+            case Leaf(v) => recur(trees, v.max(acc))
+            case Branch(left, right) =>
+              recur(Cons(right, Cons(left, trees)), acc)
+          }
+      }
+    recur(List(tree))
+  }
+
+  // Ex 3.27 Write a function that returns the path length from the root to a leaf
+  def depth[A](tree: Tree[A]): Int = {
+    @annotation.tailrec
+    def recur(
+        treesAndLengths: List[(Tree[A], Int)],
+        maxLengthSeen: Int = 0
+    ): Int = treesAndLengths match {
+      case Nil => maxLengthSeen
+      case Cons(treeAndLength, remainder) =>
+        treeAndLength match {
+          case (Leaf(_), length) => recur(remainder, maxLengthSeen.max(length))
+          case (Branch(left, right), length) =>
+            recur(
+              Cons(
+                (right, length + 1),
+                Cons(
+                  (left, length + 1),
+                  remainder
+                )
+              ),
+              maxLengthSeen
+            )
+        }
+    }
+    recur(List((tree, 0)))
+  }
+
+  // Given a left-first depth-first list that represents the order of traversal of each leaf in a tree, return a tree
+  def treeify[A](leaves: List[Leaf[A]]): Tree[A] = {
+    @annotation.tailrec
+    def recur[A](leaves: List[Leaf[A]], acc: Tree[A]): Tree[A] = {
+      leaves match {
+        case Nil => acc
+        case Cons(leaf, leaves) => recur(leaves, Branch(leaf, acc))
+      }
+    }
+
+    require(!List.isEmpty(leaves))
+    leaves match {
+      case Cons(leaf, leaves) => recur(leaves, leaf)
+    }
+  }
+
+  // Ex 3.28 Write a function that modifies each element of the tree given a function
+  def map[A, B](tree: Tree[A])(fn: A => B): Tree[B] = {
+    @annotation.tailrec
+    def recur[A, B](trees: List[Tree[A]], acc: List[Leaf[B]], fn: A => B): List[Leaf[B]] =
+      trees match {
+        case Nil => acc
+        case Cons(tree, trees) =>
+          tree match {
+            case Leaf(v) => recur(trees, Cons(Leaf(fn(v)), acc), fn)
+            case Branch(left, right) =>
+              recur(Cons(right, Cons(left, trees)), acc, fn)
+          }
+      }
+
+    treeify(recur(List(tree), Nil, fn))
+  }
+  /**
+   * https://stackoverflow.com/questions/55042834/how-to-make-tree-mapping-tail-recursive*/
 }
