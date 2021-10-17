@@ -5,7 +5,6 @@ import scala.collection.mutable.ListBuffer
 trait RNG {
   def nextInt: (Int, RNG)
 }
-
 case class SimpleRNG(seed: Long) extends RNG {
   def nextInt: (Int, RNG) = {
     val newSeed = (seed * 0x5deece66dL + 0xbL) & 0xffffffffffffL
@@ -54,11 +53,7 @@ object State {
 
   def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] = {
     @annotation.tailrec
-    def recur(
-        fs: List[State[S, A]],
-        s: S,
-        acc: ListBuffer[A] = ListBuffer.empty
-    ): (List[A], S) = {
+    def recur(fs: List[State[S, A]], s: S, acc: ListBuffer[A]): (List[A], S) = {
       if (fs.isEmpty) {
         (acc.toList, s)
       } else {
@@ -66,8 +61,7 @@ object State {
         recur(fs.tail, nextS, acc :+ nextA)
       }
     }
-
-    State(s => recur(fs, s))
+    State(s => recur(fs, s, ListBuffer.empty))
   }
 }
 
@@ -88,8 +82,8 @@ class Exercise6 {
     (d % 1, nextRNG)
   }
 
-  // Exercise 6.3: Write functions to generate an (Int, Double) pair, a (Double, Int) pair, and a (Double, Double, Double) 3-tuple.
-  // You should reuse functions you've already written
+  // Exercise 6.3: Write functions to generate an (Int, Double) pair, a (Double, Int) pair, and a
+  // (Double, Double, Double) 3-tuple. You should reuse functions you've already written
   def intDouble(rng: RNG): ((Int, Double), RNG) = {
     val (nextInt, nextRNG) = rng.nextInt
     val (nextDouble, nextRNG2) = double(nextRNG)
@@ -145,8 +139,8 @@ class Exercise6 {
     State(nonNegativeInt).map(i => (i.toDouble / Int.MaxValue) % 1)
   }
 
-  // Exercise 6.6: Write the implementation of map2 based on the following signature. This function takes 2 actions, ra and rb, and a function f
-  // for combining their results, and returns a new action that combines them:
+  // Exercise 6.6: Write the implementation of map2 based on the following signature. This function takes 2 actions,
+  // ra and rb, and a function f for combining their results, and returns a new action that combines them.
   def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
     State(rng => {
       val (a, rng2) = ra.run(rng)
@@ -190,10 +184,15 @@ class Exercise6 {
   def nonNegativeLessThan(n: Int): Rand[Int] = State(rng => {
     val (i, rng2) = nonNegativeInt(rng)
     val mod = i % n
-    if (i + (n - 1) - mod >= 0)
+    if (i + (n - 1) - mod >= 0) {
       (mod, rng2)
-    else nonNegativeLessThan(n).run(rng2)
-    // The else branch deals with the case where Int.MaxValue is not exactly divisible by n. If this is true, then the numbers that are less than the remainder of that division will come up more frequently. So when nonNegativeInt generates numbers higher than the largest multiple of n that fits in a 32-bit integer, we should retry the generator and hope to get a smaller number.
+    } else {
+      // The else branch deals with the case where Int.MaxValue is not exactly divisible by n. If this is true, then
+      // the numbers that are less than the remainder of that division will come up more frequently. So when
+      // nonNegativeInt generates numbers higher than the largest multiple of n that fits in a 32-bit integer, we
+      // should retry the generator and hope to get a smaller number.
+      nonNegativeLessThan(n).run(rng2)
+    }
   })
 
   // Exercise 6.8: implement flatMap, and then use it to implement nonNegativeLessThan
