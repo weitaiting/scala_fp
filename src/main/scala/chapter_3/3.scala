@@ -11,7 +11,7 @@ case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
 object List {
   def isEmpty[A](ls: List[A]): Boolean = ls match {
     case Nil => true
-    case _ => false
+    case _   => false
   }
 
   def sum(ints: List[Int]): Int = ints match {
@@ -32,7 +32,7 @@ object List {
   // Ex 3.2: Returns a list with the first element removed
   def tail[A](items: List[A]): List[A] = items match {
     case Nil         => Nil
-    case Cons(x, xs) => xs
+    case Cons(_, xs) => xs
   }
 
   // Ex 3.3: Replace the first element of a list with a different value
@@ -65,9 +65,9 @@ object List {
   // a tail-recursive solution
   def init[A](l: List[A]): List[A] = {
     @annotation.tailrec
-    def tailRec[A](l: List[A], acc: List[A]): List[A] = l match {
+    def tailRec(l: List[A], acc: List[A]): List[A] = l match {
       case Nil          => Nil
-      case Cons(x, Nil) => reverse(acc)
+      case Cons(_, Nil) => reverse(acc)
       case Cons(x, xs)  => tailRec(xs, Cons(x, acc))
     }
     tailRec(l, Nil)
@@ -77,7 +77,7 @@ object List {
   // a non-tail-recursive solution
   def init2[A](l: List[A]): List[A] = l match {
     case Nil          => Nil
-    case Cons(x, Nil) => Nil
+    case Cons(_, Nil) => Nil
     case Cons(x, xs)  => Cons(x, init2(xs))
   }
 
@@ -99,7 +99,7 @@ object List {
 
   // Ex 3.9 Compute length of a list using foldRight
   def length[A](as: List[A]): Int =
-    foldRight(as, 0)((x, y) => y + 1)
+    foldRight(as, 0)((_, y) => y + 1)
 
   // Ex 3.10 Write a tail-recursive foldLeft
   @annotation.tailrec
@@ -117,7 +117,7 @@ object List {
     foldLeft(ns, 1.0)((x, y) => x * y)
 
   def length2[A](as: List[A]): Int =
-    foldLeft(as, 0)((x, y) => x + 1)
+    foldLeft(as, 0)((x, _) => x + 1)
 
   // Ex 3.12 Write a reverse implemented with foldLeft
   def reverse2[A](ns: List[A]) =
@@ -178,7 +178,7 @@ object List {
   // Ex 3.20 Write flatMap
   def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
     foldLeft(as, List[B]())((x, y) => prependAll(f(y))(x))
- 
+
   // Ex 3.21 Write filter in terms of flatMap
   def filter2[A](as: List[A])(f: A => Boolean): List[A] =
     flatMap(as)(x => if (f(x)) List(x) else List())
@@ -220,7 +220,7 @@ object Tree {
   // Ex 3.25 Write a function that counts the number of nodes (leaves and branches) in a tree
   def size[A](tree: Tree[A]): Int = {
     @annotation.tailrec
-    def recur[A](trees: List[Tree[A]], acc: Int = 0): Int = trees match {
+    def recur(trees: List[Tree[A]], acc: Int = 0): Int = trees match {
       case Nil => acc
       case Cons(tree, trees) =>
         tree match {
@@ -233,7 +233,7 @@ object Tree {
   }
 
   // Ex 3.26 Write a function that returns the max element in the tree
-  def maximum(tree: Tree[Int], acc: Int = Int.MinValue): Int = {
+  def maximum(tree: Tree[Int]): Int = {
     @annotation.tailrec
     def recur(trees: List[Tree[Int]], acc: Int = Int.MinValue): Int =
       trees match {
@@ -278,9 +278,9 @@ object Tree {
   // Given a left-first depth-first list that represents the order of traversal of each leaf in a tree, return a tree
   def treeify[A](leaves: List[Leaf[A]]): Tree[A] = {
     @annotation.tailrec
-    def recur[A](leaves: List[Leaf[A]], acc: Tree[A]): Tree[A] = {
+    def recur(leaves: List[Leaf[A]], acc: Tree[A]): Tree[A] = {
       leaves match {
-        case Nil => acc
+        case Nil                => acc
         case Cons(leaf, leaves) => recur(leaves, Branch(leaf, acc))
       }
     }
@@ -294,7 +294,11 @@ object Tree {
   // Ex 3.28 Write a function that modifies each element of the tree given a function
   def map[A, B](tree: Tree[A])(fn: A => B): Tree[B] = {
     @annotation.tailrec
-    def recur[A, B](trees: List[Tree[A]], acc: List[Leaf[B]], fn: A => B): List[Leaf[B]] =
+    def recur(
+        trees: List[Tree[A]],
+        acc: List[Leaf[B]],
+        fn: A => B
+    ): List[Leaf[B]] =
       trees match {
         case Nil => acc
         case Cons(tree, trees) =>
@@ -307,6 +311,7 @@ object Tree {
 
     treeify(recur(List(tree), Nil, fn))
   }
-  /**
-   * https://stackoverflow.com/questions/55042834/how-to-make-tree-mapping-tail-recursive*/
+
+  /** https://stackoverflow.com/questions/55042834/how-to-make-tree-mapping-tail-recursive
+    */
 }
