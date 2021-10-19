@@ -17,6 +17,14 @@ case class SimpleRNG(seed: Long) extends RNG {
 // Exercise 6.10: Generalize the functions unit, map, map2, flatMap and sequence.
 // Add them as methods on the State case class where possible. Otherwise, put them in a State companion Object.
 case class State[S, +A](run: S => (A, S)) {
+  def get: State[S, S] = State(s => (s, s))
+
+  def set(s: S): State[S, Unit] = State(_ => ((), s))
+
+  def modify(f: S => S): State[S, Unit] = for {
+    s <- get
+    _ <- set(f(s))
+  } yield ()
 
   def map[B](f: A => B): State[S, B] =
     State(s => {
@@ -227,49 +235,32 @@ class CandyMachine {
   sealed trait Input
   case object Coin extends Input
   case object Turn extends Input
-  case class Machine(locked: Boolean, candies: Int, coins: Int)
+  case class Machine(locked: Boolean, candies: Int, coins: Int) {
+    def outOfCandy: Boolean = candies == 0
+    def insertCoin: Machine =
+      if (outOfCandy) this else this.copy(locked = false, coins = coins + 1)
+    def turnKnob: Machine = if (outOfCandy) this
+    else
+      this.copy(locked = true, candies = if (locked) candies else candies - 1)
+  }
+
+  val insertCoin: State[Machine, Unit] = State(m => ((), m.insertCoin))
+  val turnKnob: State[Machine, Unit] = State(m => ((), m.turnKnob))
+
+  def processInput(input: Input): Option[State[Machine, Unit]] = input match {
+    case Coin => Some(insertCoin)
+    case Turn => Some(turnKnob)
+    case _    => None
+  }
 
   // The method simulateMachine should operate the machine based on the list of inputs and return the
   // number of coins and candies left in the machine at the end.
   // e.g. input Machine has 10 coins and 5 candies, and a total of 4 candies are successfully bought
   // output should be (14, 1).
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = {
-
-    def processInput(machine: Machine, input: Input): Machine = {
-      if (machine.candies == 0) {
-        machine
-      } else {
-        input match {
-          case Coin =>
-            Machine(locked = false, machine.coins + 1, machine.candies)
-          case Turn =>
-            Machine(
-              locked = true,
-              machine.coins,
-              if (machine.locked) machine.candies else machine.candies - 1
-            )
-        }
-      }
-    }
-
-    @annotation.tailrec
-    def recur(
-        inputs: List[Input],
-        acc: State[Machine, (Int, Int)]
-    ): State[Machine, (Int, Int)] = {
-      if (inputs.isEmpty) {
-        acc
-      } else {
-        recur(
-          inputs.tail,
-          State(machine => {
-            val machine2 = processInput(machine, inputs.head)
-            ((machine2.coins, machine2.candies), machine2)
-          })
-        )
-      }
-    }
-
-    recur(inputs, State(machine => ((machine.coins, machine.candies), machine)))
+    State
+      .sequence(inputs.flatMap(processInput))
+      .get
+      .map(machine => (machine.coins, machine.candies))
   }
 }
