@@ -213,3 +213,63 @@ class Exercise6 {
   }
 
 }
+
+// Exercise 6.11: To gain experience with the use of State, implement a FSA that models a simple candy
+// dispenser. The machine has two types of input: you can insert a coin, or you can turn the knob to
+// dispense candy. It can be in one of two states: locked or unlocked. It also tracks how many candies
+// are left and how many coins it contains.
+// The rules of the machine are as follows:
+// - Inserting a coin into a locked machine will cause it to unlock if there's any candy left
+// - Turning the knob on an unlocked machine will cause it to dispense candy and become locked
+// - Turning the knob on a locked machine or inserting a coin into an unlocked machine does nothing
+// - A machine that's out of candy ignores all inputs
+class CandyMachine {
+  sealed trait Input
+  case object Coin extends Input
+  case object Turn extends Input
+  case class Machine(locked: Boolean, candies: Int, coins: Int)
+
+  // The method simulateMachine should operate the machine based on the list of inputs and return the
+  // number of coins and candies left in the machine at the end.
+  // e.g. input Machine has 10 coins and 5 candies, and a total of 4 candies are successfully bought
+  // output should be (14, 1).
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = {
+
+    def processInput(machine: Machine, input: Input): Machine = {
+      if (machine.candies == 0) {
+        machine
+      } else {
+        input match {
+          case Coin =>
+            Machine(locked = false, machine.coins + 1, machine.candies)
+          case Turn =>
+            Machine(
+              locked = true,
+              machine.coins,
+              if (machine.locked) machine.candies else machine.candies - 1
+            )
+        }
+      }
+    }
+
+    @annotation.tailrec
+    def recur(
+        inputs: List[Input],
+        acc: State[Machine, (Int, Int)]
+    ): State[Machine, (Int, Int)] = {
+      if (inputs.isEmpty) {
+        acc
+      } else {
+        recur(
+          inputs.tail,
+          State(machine => {
+            val machine2 = processInput(machine, inputs.head)
+            ((machine2.coins, machine2.candies), machine2)
+          })
+        )
+      }
+    }
+
+    recur(inputs, State(machine => ((machine.coins, machine.candies), machine)))
+  }
+}
