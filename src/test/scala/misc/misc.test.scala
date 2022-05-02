@@ -32,7 +32,7 @@ class MiscTest extends AnyFlatSpec {
       )
     )
     val result =
-      Tree.mapLeaves(example, { case Leaf(n) => Leaf(n.toUpperCase) })
+      Tree.mapLeaves(example)(x => x.toUpperCase)
     assert(result == expected)
   }
 }

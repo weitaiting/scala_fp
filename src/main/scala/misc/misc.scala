@@ -1,18 +1,18 @@
 package misc
 
-trait Tree {}
-case class Branch(left: Tree, right: Tree) extends Tree
-case class Leaf(name: String) extends Tree
+trait Tree[+A]
+case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+case class Leaf[A](value: A) extends Tree[A]
 
 object Tree {
-  def mapLeaves(root: Tree, f: Leaf => Leaf): Tree = {
+  def mapLeaves[A, B](root: Tree[A])(f: A => B): Tree[B] = {
     case class Frame(
-        done: List[Tree],
-        todos: List[Tree]
+        done: List[Tree[B]],
+        todos: List[Tree[A]]
     )
 
     @annotation.tailrec
-    def step(stack: List[Frame]): Tree = {
+    def step(stack: List[Frame]): Tree[B] = {
       System.out.println(stack)
       // "return / pop a stack-frame"
       val frame :: frames = stack
@@ -36,7 +36,7 @@ object Tree {
         case Frame(done, x :: xs) => {
           x match {
             // "recursion base"
-            case l @ Leaf(_) => step(Frame(f(l) :: done, xs) :: frames)
+            case Leaf(v) => step(Frame(Leaf(f(v)) :: done, xs) :: frames)
             // "recursive call"
             case Branch(left, right) =>
               step(Frame(Nil, List(left, right)) :: Frame(done, xs) :: frames)
@@ -46,7 +46,7 @@ object Tree {
     }
 
     root match {
-      case l @ Leaf(_) => f(l)
+      case Leaf(v) => Leaf(f(v))
       case Branch(left, right) =>
         step(List(Frame(Nil, List(left, right))))
     }
