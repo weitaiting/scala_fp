@@ -1,0 +1,28 @@
+List(
+  Frame(
+    List(),
+    List(Branch(List(Leaf(a), Leaf(b))), Branch(List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))))))
+List(
+  Frame(List(),List(Leaf(a), Leaf(b))),
+  Frame(List(),List(Branch(List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))))))
+List(
+  Frame(List(Leaf(A)),List(Leaf(b))),
+  Frame(List(),List(Branch(List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))))))
+List(
+  Frame(List(Leaf(B), Leaf(A)),List()),
+  Frame(List(),List(Branch(List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))))))
+List(
+  Frame(
+    List(
+      Branch(List(Leaf(A), Leaf(B)))),
+      List(
+        Branch(List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))))))
+List(
+  Frame(List(),List(Leaf(c), Branch(List(Leaf(d), Leaf(e))))),
+  Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(Leaf(C)),List(Branch(List(Leaf(d), Leaf(e))))), Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(),List(Leaf(d), Leaf(e))), Frame(List(Leaf(C)),List()), Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(Leaf(D)),List(Leaf(e))), Frame(List(Leaf(C)),List()), Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(Leaf(E), Leaf(D)),List()), Frame(List(Leaf(C)),List()), Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(Branch(List(Leaf(D), Leaf(E))), Leaf(C)),List()), Frame(List(Branch(List(Leaf(A), Leaf(B)))),List()))
+List(Frame(List(Branch(List(Leaf(C), Branch(List(Leaf(D), Leaf(E))))), Branch(List(Leaf(A), Leaf(B)))),List()))
