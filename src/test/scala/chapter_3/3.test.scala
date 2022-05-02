@@ -42,8 +42,12 @@ class Exercise3ListTest extends AnyFlatSpec {
   "dropWhile" should "remove the front elements of a list until an element is found that violates the given predicate" in {
     assert(List.dropWhile(List())((x: Int) => x % 2 == 1) == Nil)
     assert(List.dropWhile(List(1, 3, 5))(x => x % 2 == 1) == Nil)
-    assert(List.dropWhile(List(1, 3, 5, 2, 4, 6))(x => x % 2 == 1) == List(2, 4, 6))
-    assert(List.dropWhile(List(1, 2, 3, 4, 5))(x => x % 2 == 1) == List(2, 3, 4, 5))
+    assert(
+      List.dropWhile(List(1, 3, 5, 2, 4, 6))(x => x % 2 == 1) == List(2, 4, 6)
+    )
+    assert(
+      List.dropWhile(List(1, 2, 3, 4, 5))(x => x % 2 == 1) == List(2, 3, 4, 5)
+    )
   }
 
   "reverse" should "return a list with elements reversed" in {
@@ -116,7 +120,15 @@ class Exercise3ListTest extends AnyFlatSpec {
   }
 
   "flatten" should "flatten a list of lists" in {
-    assert(List.flatten(List(List(1, 2), List(3), List(), List(4, 5))) == List(1, 2, 3, 4, 5))
+    assert(
+      List.flatten(List(List(1, 2), List(3), List(), List(4, 5))) == List(
+        1,
+        2,
+        3,
+        4,
+        5
+      )
+    )
   }
 
   "addOne" should "add 1 to each int in a list of ints" in {
@@ -141,7 +153,10 @@ class Exercise3ListTest extends AnyFlatSpec {
   }
 
   "flatMap" should "map then flatten" in {
-    assert(List.flatMap(List(1, 2, 3))(x => List(x * 1, x * 2)) == List(1, 2, 2, 4, 3, 6))
+    assert(
+      List.flatMap(List(1, 2, 3))(x => List(x * 1, x * 2)) == List(1, 2, 2, 4,
+        3, 6)
+    )
   }
 
   "filter2" should "remove elements from a list that do not satisfy a fn" in {
@@ -153,32 +168,60 @@ class Exercise3ListTest extends AnyFlatSpec {
   }
 
   "zipWith" should "apply a fn to each element paired across 2 lists" in {
-    assert(List.zipWith(List(1, 2, 3), List(1, 0, -1), (x: Int, y: Int) => x * y) == List(1, 0, -3))
+    assert(
+      List.zipWith(
+        List(1, 2, 3),
+        List(1, 0, -1),
+        (x: Int, y: Int) => x * y
+      ) == List(1, 0, -3)
+    )
   }
 }
 
 class Exercise3TreeTest extends AnyFlatSpec {
   "size" should "return the number of leaf and branch nodes on the tree" in {
-    assert(Tree.size(Leaf(5)) == 1)
-    assert(Tree.size(Branch(Leaf(1), Leaf(0))) == 3)
-    assert(Tree.size(Branch(Branch(Leaf(2), Leaf(3)), Leaf(1))) == 5)
+    assert(NonTailRecursiveTree.size(Leaf(5)) == 1)
+    assert(NonTailRecursiveTree.size(Branch(Leaf(1), Leaf(0))) == 3)
+    assert(
+      NonTailRecursiveTree.size(Branch(Branch(Leaf(2), Leaf(3)), Leaf(1))) == 5
+    )
   }
 
   "maximum" should "return the max element in the tree" in {
-    assert(Tree.maximum(Leaf(5)) == 5)
-    assert(Tree.maximum(Branch(Leaf(1), Leaf(0))) == 1)
-    assert(Tree.maximum(Branch(Branch(Leaf(2), Leaf(-3)), Branch(Leaf(6), Leaf(0)))) == 6)
+    assert(NonTailRecursiveTree.maximum(Leaf(5)) == 5)
+    assert(NonTailRecursiveTree.maximum(Branch(Leaf(1), Leaf(0))) == 1)
+    assert(
+      NonTailRecursiveTree.maximum(
+        Branch(Branch(Leaf(2), Leaf(-3)), Branch(Leaf(6), Leaf(0)))
+      ) == 6
+    )
   }
 
   "depth" should "return the max depth of a tree" in {
-    assert(Tree.depth(Leaf(5)) == 0)
-    assert(Tree.depth(Branch(Leaf(1), Leaf(2))) == 1)
-    assert(Tree.depth(Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4)))) == 2)
-    assert(Tree.depth(Branch(Leaf(1), Branch(Leaf(1), Branch(Leaf(1), Leaf(2))))) == 3)
-    assert(Tree.depth(Branch(Branch(Branch(Leaf(1), Leaf(2)), Leaf(3)), Leaf(4))) == 3)
+    assert(NonTailRecursiveTree.depth(Leaf(5)) == 0)
+    assert(NonTailRecursiveTree.depth(Branch(Leaf(1), Leaf(2))) == 1)
+    assert(
+      NonTailRecursiveTree.depth(
+        Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4)))
+      ) == 2
+    )
+    assert(
+      NonTailRecursiveTree.depth(
+        Branch(Leaf(1), Branch(Leaf(1), Branch(Leaf(1), Leaf(2))))
+      ) == 3
+    )
+    assert(
+      NonTailRecursiveTree.depth(
+        Branch(Branch(Branch(Leaf(1), Leaf(2)), Leaf(3)), Leaf(4))
+      ) == 3
+    )
   }
 
-  "map" should "modify each element of a tree according to the given fn" in {
-    assert(Tree.map[Int, Int](Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4))))(x => x) == Branch(Leaf(1), Leaf(2)))
-  }
+  // "map" should "modify each element of a tree according to the given fn" in {
+  //  val input = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4)))
+  //  val expectedOutput =
+  //     Branch(Branch(Leaf(2), Leaf(4)), Branch(Leaf(6), Leaf(8)))
+  //   assert(NonTailRecursiveTree.map[Int, Int](input)(x => 2 * x) == expectedOutput)
+  // }
+
 }

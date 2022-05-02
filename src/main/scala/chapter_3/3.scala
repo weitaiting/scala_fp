@@ -216,8 +216,55 @@ object List {
 
 }
 
-object Tree {
+trait TreeSpec {
   // Ex 3.25 Write a function that counts the number of nodes (leaves and branches) in a tree
+  def size[A](tree: Tree[A]): Int
+
+  // Ex 3.26 Write a function that returns the max element in the tree
+  def maximum(tree: Tree[Int]): Int
+
+  // Ex 3.27 Write a function that returns the path length from the root to a leaf
+  def depth[A](tree: Tree[A]): Int
+
+  // Ex 3.28 Write a function that modifies each element of the tree given a function
+  // Note: Writing a tail-recursive map function for trees is quite tree-cky,
+  // see https://stackoverflow.com/questions/55042834/how-to-make-tree-mapping-tail-recursive
+  //def map[A, B](tree: Tree[A])(fn: A => B): Tree[B]
+}
+
+object NonTailRecursiveTree extends TreeSpec {
+  def size[A](tree: Tree[A]): Int = {
+    tree match {
+      case Leaf(_) => 1
+      case Branch(left, right) =>
+        1 + size(left) + size(right)
+    }
+  }
+
+  def maximum(tree: Tree[Int]): Int = {
+    tree match {
+      case Leaf(i) => i
+      case Branch(left, right) =>
+        maximum(left).max(maximum(right))
+    }
+  }
+
+  def depth[A](tree: Tree[A]): Int = {
+    tree match {
+      case Leaf(_)             => 0
+      case Branch(left, right) => 1 + depth(left).max(depth(right))
+    }
+  }
+
+  def map[A, B](tree: Tree[A])(fn: A => B): Tree[B] = {
+    tree match {
+      case Leaf(v)             => Leaf(fn(v))
+      case Branch(left, right) => Branch(map(left)(fn), map(right)(fn))
+    }
+  }
+}
+
+object TailRecursiveTree extends TreeSpec {
   def size[A](tree: Tree[A]): Int = {
     @annotation.tailrec
     def recur(trees: List[Tree[A]], acc: Int = 0): Int = trees match {
@@ -232,7 +279,6 @@ object Tree {
     recur(List(tree))
   }
 
-  // Ex 3.26 Write a function that returns the max element in the tree
   def maximum(tree: Tree[Int]): Int = {
     @annotation.tailrec
     def recur(trees: List[Tree[Int]], acc: Int = Int.MinValue): Int =
@@ -248,7 +294,6 @@ object Tree {
     recur(List(tree))
   }
 
-  // Ex 3.27 Write a function that returns the path length from the root to a leaf
   def depth[A](tree: Tree[A]): Int = {
     @annotation.tailrec
     def recur(
@@ -275,43 +320,41 @@ object Tree {
     recur(List((tree, 0)))
   }
 
-  // Given a left-first depth-first list that represents the order of traversal of each leaf in a tree, return a tree
-  def treeify[A](leaves: List[Leaf[A]]): Tree[A] = {
-    @annotation.tailrec
-    def recur(leaves: List[Leaf[A]], acc: Tree[A]): Tree[A] = {
-      leaves match {
-        case Nil                => acc
-        case Cons(leaf, leaves) => recur(leaves, Branch(leaf, acc))
-      }
-    }
-
-    require(!List.isEmpty(leaves))
-    leaves match {
-      case Cons(leaf, leaves) => recur(leaves, leaf)
-    }
-  }
-
-  // Ex 3.28 Write a function that modifies each element of the tree given a function
+  /*
   def map[A, B](tree: Tree[A])(fn: A => B): Tree[B] = {
-    @annotation.tailrec
-    def recur(
-        trees: List[Tree[A]],
-        acc: List[Leaf[B]],
-        fn: A => B
-    ): List[Leaf[B]] =
-      trees match {
-        case Nil => acc
-        case Cons(tree, trees) =>
-          tree match {
-            case Leaf(v) => recur(trees, Cons(Leaf(fn(v)), acc), fn)
-            case Branch(left, right) =>
-              recur(Cons(right, Cons(left, trees)), acc, fn)
-          }
+    // A stack frame for the tail-recursive Tree.map implementation
+    case class Frame[X, Y](done: Tree[Y], todos: List[Tree[X]])
+    def step(stack: List[Frame[A, B]]): Tree[B] = stack match {
+      case Cons(Frame(done, Nil), remainder) => {
+        remainder match {
+          case Nil =>
+            done match {
+              case l @ Leaf(_)         => l
+              case Branch(left, right) => Branch(right, left)
+            }
+          case Cons(Frame(done2, todo2), more) =>
+            step(Cons(Frame(List.prependAll(done2)(done), todo2), more))
+        }
       }
+      case Cons(Frame(done, Cons(head, tail)), remainder) =>
+        head match {
+          // recursion base case
+          case Leaf(v) =>
+            step(Cons(Frame(Cons(Leaf(fn(v)), done), tail), remainder))
+          case Branch(left, right) =>
+            step(
+              Cons(
+                Frame(Nil, List(left, right)),
+                Cons(Frame(done, tail), remainder)
+              )
+            )
+        }
+    }
 
-    treeify(recur(List(tree), Nil, fn))
-  }
-
-  /** https://stackoverflow.com/questions/55042834/how-to-make-tree-mapping-tail-recursive
-    */
+    tree match {
+      case Leaf(v) => Leaf(fn(v))
+      case Branch(left, right) =>
+        step(List(Frame(Nil, List(left, right))))
+    }
+  } */
 }
