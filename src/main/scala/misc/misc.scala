@@ -14,14 +14,15 @@ object Tree {
     @annotation.tailrec
     def step(stack: List[Frame]): Tree = {
       System.out.println(stack)
-      stack match {
-        // "return / pop a stack-frame"
-        case Frame(done, Nil) :: tail => {
+      // "return / pop a stack-frame"
+      val frame :: frames = stack
+      frame match {
+        case Frame(done, Nil) => {
           if (done.size != 2) {
             throw new Error("should not happen, not 2")
           }
           val ret = Branch(done(1), done(0))
-          tail match {
+          frames match {
             case Nil => ret
             case Frame(td, tt) :: more => {
               if (td.size != 0) {
@@ -32,18 +33,16 @@ object Tree {
             }
           }
         }
-        case Frame(done, x :: xs) :: tail => {
+        case Frame(done, x :: xs) => {
           x match {
             // "recursion base"
-            case l @ Leaf(_) => step(Frame(f(l) :: done, xs) :: tail)
+            case l @ Leaf(_) => step(Frame(f(l) :: done, xs) :: frames)
             // "recursive call"
             case Branch(left, right) =>
-              step(Frame(Nil, List(left, right)) :: Frame(done, xs) :: tail)
+              step(Frame(Nil, List(left, right)) :: Frame(done, xs) :: frames)
           }
         }
-        case Nil => throw new Error("shouldn't happen")
       }
-
     }
 
     root match {
